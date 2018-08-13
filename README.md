@@ -67,3 +67,55 @@ First, enable [memory tracing](https://os.mbed.com/docs/latest/tutorials/optimiz
     ```
 
 1. Look at the C++ line above the Assembly. This is the declaration of the dangling pointer.
+
+## Example program
+
+```cpp
+#include "mbed.h"
+#include "mbed_mem_trace.h"
+
+DigitalOut led1(LED1);
+
+void print_memory_info() {
+    // allocate enough room for every thread's stack statistics
+    int cnt = osThreadGetCount();
+    mbed_stats_stack_t *stats = (mbed_stats_stack_t*) malloc(cnt * sizeof(mbed_stats_stack_t));
+
+    cnt = mbed_stats_stack_get_each(stats, cnt);
+    for (int i = 0; i < cnt; i++) {
+        printf("Thread: 0x%lX, Stack size: %lu / %lu\r\n", stats[i].thread_id, stats[i].max_size, stats[i].reserved_size);
+    }
+    free(stats);
+
+    // Grab the heap statistics
+    mbed_stats_heap_t heap_stats;
+    mbed_stats_heap_get(&heap_stats);
+    printf("Heap size: %lu / %lu bytes\r\n", heap_stats.current_size, heap_stats.reserved_size);
+}
+
+int main() {
+    print_memory_info();
+    mbed_mem_trace_set_callback(mbed_mem_trace_default_callback);
+
+    while (true) {
+        wait(2.0);
+
+        void *ptr1 = malloc(512);
+        void *ptr2 = calloc(768, 1);
+        void *ptr3 = (void*)new DigitalOut(LED1);
+        void *ptr4 = malloc(256);
+
+        ptr4 = realloc(ptr4, 512);
+
+        // Grab the heap statistics
+        mbed_stats_heap_t heap_stats;
+        mbed_stats_heap_get(&heap_stats);
+        printf("Heap size: %lu / %lu bytes\r\n", heap_stats.current_size, heap_stats.reserved_size);
+
+        // Forget to free a pointer
+        free(ptr1);
+        free(ptr3);
+        free(ptr4);
+    }
+}
+```
