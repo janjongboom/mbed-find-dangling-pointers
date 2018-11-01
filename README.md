@@ -33,7 +33,7 @@ First, enable [memory tracing](https://os.mbed.com/docs/latest/tutorials/optimiz
 1. Save the complete serial output of your application to a file, then run:
 
     ```
-    $ node find-dangling-ptrs.js example/log-file.txt example/example.elf
+    $ mbed-find-dangling-ptrs serial-log-file.txt path-to-your-elf-file.elf
     ```
 
     **Note:** You can find the `.elf` file in `BUILD/TARGET_NAME/GCC_ARM/`.
