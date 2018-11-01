@@ -136,18 +136,20 @@ function startProcessing(logFileContent, symbols) {
         let ptrs = deduped[loc].map(r => r.ptr + ' (' + r.size + ')').join(', ');
 
         console.log('');
-        console.log('--------------------------------------------------');
+        console.log('-------------------------------------------------- ' + loc);
         console.log(`${deduped[loc].length} dangling pointers (total: ${total} bytes): [ ${ptrs} ]`);
         console.log(flc.join('\n'));
     }
 }
 
 function findLineInCode(loc, symbolLines) {
-    const isLoc = /^    [0-9a-f]{4,6}:/;
+    const isLoc = /^\s+[0-9a-f]{4,6}:/;
 
-    loc = Number(loc.substr(2)) - 1;
+    loc = (parseInt(loc.substr(2), 16) - 1).toString(16).toLowerCase();
 
-    let lineIx = symbolLines.findIndex(l => l.indexOf(`    ${loc}:`) === 0);
+    let currLocRegexp = new RegExp('^\\s+' + loc + ':');
+
+    let lineIx = symbolLines.findIndex(l => currLocRegexp.test(l) === true);
 
     let lines = [];
 

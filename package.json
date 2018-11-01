@@ -1,6 +1,6 @@
 {
   "name": "mbed-find-dangling-pointers",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "Find un-free'd pointers in Mbed OS applications",
   "main": "find-dangling-ptrs.js",
   "bin": {
