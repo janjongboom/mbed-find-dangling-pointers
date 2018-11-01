@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 /*
  * should take in two paramers...
  * 1. .elf file
