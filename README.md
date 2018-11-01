@@ -70,6 +70,8 @@ First, enable [memory tracing](https://os.mbed.com/docs/latest/tutorials/optimiz
                 free(ptr3);
     ```
 
+    The line that is marked with `>>>` is the line where the allocation happened.
+
 ## Example program
 
 ```cpp
