@@ -24,49 +24,51 @@ First, enable [memory tracing](https://os.mbed.com/docs/latest/tutorials/optimiz
 
 ## Using this script
 
-1. Clone this repository.
+1. Install the script through npm.
 
     ```
-    $ git clone https://github.com/janjongboom/mbed-find-dangling-pointers
+    $ npm install mbed-find-dangling-ptrs -g
     ```
 
 1. Save the complete serial output of your application to a file, then run:
 
     ```
-    $ cat example/log-file.txt | node find-dangling-ptrs.js
+    $ node find-dangling-ptrs.js example/log-file.txt example/example.elf
     ```
+
+    **Note:** You can find the `.elf` file in `BUILD/TARGET_NAME/GCC_ARM/`.
 
 1. This will give you the dangling pointers:
 
     ```
-    Dangling pointers { '0x200036c0': { loc: '0x1867', size: 768 },
-        '0x200039d0': { loc: '0x1867', size: 768 },
-        '0x20003ce0': { loc: '0x1867', size: 768 },
-        '0x20003ff0': { loc: '0x1867', size: 768 },
-        '0x20004300': { loc: '0x1867', size: 768 } }
-    ```
+    Extracting symbols from example/example.elf
+    Extracting symbols OK
 
-1. To find the exact location where these are declared, use `arm-none-eabi-objdump` on the `.elf` file (need to use a debug build):
+    Found 5 dangling pointers
 
-    ```
-    $ arm-none-eabi-objdump -S example/example.elf > symbols.txt
-    ```
+    --------------------------------------------------
+    5 dangling pointers (total: 3840 bytes): [ 0x200036c0 (768), 0x200039d0 (768), 0x20003ce0 (768), 0x20003ff0 (768), 0x20004300 (768) ]
 
-1. Open `symbols.txt` and look for the value of `loc` minus 1 ([why -1?](https://vilimpoc.org/blog/2017/02/01/stack-heap-and-thread-crash-hunting-in-mbed-os/#comment-304580)):
+        int main() {
+            print_memory_info();
+            mbed_mem_trace_set_callback(mbed_mem_trace_default_callback);
 
-    ```
-        void *ptr1 = malloc(512);
-    1852:	f44f 7000 	mov.w	r0, #512	; 0x200
-    1856:	f009 faeb 	bl	ae30 <malloc>
-    185a:	9009      	str	r0, [sp, #36]	; 0x24
-        void *ptr2 = calloc(768, 1);                <!--- this is where the dangling pointer was defined
-    185c:	2101      	movs	r1, #1
-    185e:	f44f 7040 	mov.w	r0, #768	; 0x300
-    1862:	f008 fd7d 	bl	a360 <calloc>
-    1866:	9008      	str	r0, [sp, #32]           <--- this line in ASM, look for the C++ line above to find the declaration
-    ```
+            while (true) {
+                wait(2.0);
 
-1. Look at the C++ line above the Assembly. This is the declaration of the dangling pointer.
+                void *ptr1 = malloc(512);
+    >>>         void *ptr2 = calloc(768, 1);
+                void *ptr3 = (void*)new DigitalOut(LED1);
+
+                // Grab the heap statistics
+                mbed_stats_heap_t heap_stats;
+                mbed_stats_heap_get(&heap_stats);
+                printf("Heap size: %lu / %lu bytes\r\n", heap_stats.current_size, heap_stats.reserved_size);
+
+                // Forget to free a pointer
+                free(ptr1);
+                free(ptr3);
+    ```
 
 ## Example program
 

@@ -1,0 +1,22 @@
+{
+  "name": "mbed-find-dangling-pointers",
+  "version": "1.0.0",
+  "description": "Find un-free'd pointers in Mbed OS applications",
+  "main": "find-dangling-ptrs.js",
+  "bin": {
+    "mbed-find-dangling-ptrs": "./find-dangling-ptrs.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/janjongboom/mbed-find-dangling-pointers.git"
+  },
+  "keywords": [
+    "mbed"
+  ],
+  "author": "Jan Jongboom <janjongboom@gmail.com>",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/janjongboom/mbed-find-dangling-pointers/issues"
+  },
+  "homepage": "https://github.com/janjongboom/mbed-find-dangling-pointers#readme"
+}
