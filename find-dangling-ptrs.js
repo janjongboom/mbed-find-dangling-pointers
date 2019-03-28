@@ -76,22 +76,32 @@ function startProcessing(logFileContent, symbols) {
     let lines = logFileContent.split('\n').filter(f=>!!f).filter(f=>f[0] === '#');
 
     let allocs = {};
+    let totalSize = 0;
 
     for (let l of lines) {
         if (l.indexOf('#m:') === 0) {
             // malloc
             let [op, ptr, loc, size] = l.split(/[\:;-]/);
-            allocs[ptr] = { loc: loc, size: size };
+            allocs[ptr] = { loc: loc, size: Number(size) };
+
+            if (!isNaN(allocs[ptr].size)) {
+                totalSize += allocs[ptr].size;
+            }
         }
         else if (l.indexOf('#c:') === 0) {
             // calloc
             let [op, ptr, loc, size, items] = l.split(/[\:;-]/);
-            allocs[ptr] = { loc: loc, size: size * items };
+            allocs[ptr] = { loc: loc, size: Number(size) * Number(items) };
+
+            if (!isNaN(allocs[ptr].size)) {
+                totalSize += allocs[ptr].size;
+            }
         }
         else if (l.indexOf('#f:') === 0) {
             // free
             let [op, ret, loc, ptr] = l.split(/[\:;-]/);
             if (allocs[ptr]) {
+                totalSize -= Number(allocs[ptr].size);
                 delete allocs[ptr];
             }
             else if (ptr !== '0x0') {
@@ -101,18 +111,22 @@ function startProcessing(logFileContent, symbols) {
         else if (l.indexOf('#r:') === 0) {
             let [op, new_ptr, loc, old_ptr, size] = l.split(/[\:;-]/);
             if (allocs[old_ptr]) {
+                totalSize -= Number(allocs[old_ptr].size);
                 delete allocs[old_ptr];
             }
             else if (ptr !== '0x0') {
                 console.warn('Realloc for untracked pointer', old_ptr);
             }
 
-            allocs[new_ptr] = { loc: loc, size: size };
+            allocs[new_ptr] = { loc: loc, size: Number(size) };
+            if (!isNaN(allocs[new_ptr].size)) {
+                totalSize += allocs[new_ptr].size;
+            }
         }
     }
 
     let pointer = Object.keys(allocs).length === 1 ? 'pointer' : 'pointers';
-    console.log(`\nFound ${Object.keys(allocs).length} dangling ${pointer}`);
+    console.log(`\nFound ${Object.keys(allocs).length} dangling ${pointer} (${totalSize} bytes)`);
 
     let symbolLines = symbols.split('\n');
 
