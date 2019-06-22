@@ -27,7 +27,7 @@ First, enable [memory tracing](https://os.mbed.com/docs/latest/tutorials/optimiz
 1. Install the script through npm.
 
     ```
-    $ npm install mbed-find-dangling-ptrs -g
+    $ npm install mbed-find-dangling-pointers -g
     ```
 
 1. Save the complete serial output of your application to a file, then run:
