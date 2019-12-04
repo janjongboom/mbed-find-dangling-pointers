@@ -46,7 +46,7 @@ if (!logFile) {
 }
 
 console.log('Extracting symbols from', elfFile);
-let objdumpResult = spawnSync('arm-none-eabi-objdump', [ '-S', elfFile ]);
+let objdumpResult = spawnSync('arm-none-eabi-objdump', [ '-S', elfFile ], { maxBuffer: 100 * 1024 * 1024 });
 if (objdumpResult.error) {
     console.log('Failed to launch `arm-none-eabi-objdump`, is it in your PATH?');
     console.log(objdumpResult.error.toString());
